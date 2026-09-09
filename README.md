@@ -2,7 +2,7 @@
 
 Stream Windows audio to HomePods and other AirPlay 2 speakers.
 
-I maintain OpenAirCast as [TTK95](https://github.com/TTK95). It captures audio from a Windows playback device and sends it to one or more speakers. The app runs as a portable executable, with a control window and a system tray icon.
+OpenAirCast captures audio from a Windows playback device and sends it to one or more speakers. The app runs as a portable executable, with a control window and a system tray icon.
 
 ## What it does
 
