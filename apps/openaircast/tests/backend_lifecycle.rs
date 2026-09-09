@@ -1,20 +1,8 @@
 //! Backend lifecycle guarantees for plan Task 10.
 //!
-//! Covers the two cross-cutting seams that cannot be proven inside the
-//! library unit tests alone:
-//!
-//! 1. The diagnostic CLI routes (`--list`, `--selftest`, `--selftest-group`)
-//!    classify arguments purely and never reach GUI construction.
-//! 2. A real [`WasapiCaptureWorker`] emits readiness only after the stream
-//!    started, delivers converted frames, and stops promptly on cancel.
-
-// Only the routing helpers are referenced here; unused-code lints are
-// relaxed for this inclusion copy and its clippy findings stay tracked on
-// the bin-target copy.
-#[allow(dead_code)]
-#[allow(clippy::all)]
-#[path = "../src/cast.rs"]
-mod cast;
+//! Covers a cross-cutting seam that cannot be proven inside the library unit
+//! tests alone: a real [`WasapiCaptureWorker`] emits readiness only after the
+//! stream started, delivers converted frames, and stops promptly on cancel.
 
 // The shared full-stack harness, so the fifty-cycle soak below drives the same
 // controller, supervisors, and leak ledgers as every other backend suite
@@ -29,7 +17,6 @@ use std::time::Duration;
 
 use tokio_util::sync::CancellationToken;
 
-use cast::{route_args, LaunchRoute};
 use homepod_cast::backend::capture::{
     CaptureError, CaptureSource, CaptureWorker, WasapiApi, WasapiCaptureSource, WasapiDeviceRef,
     WasapiLoopbackStream,
@@ -171,36 +158,6 @@ impl WasapiLoopbackStream for LifecycleFakeStream {
     fn stop_stream(&mut self) {
         self.inner.stopped_streams.fetch_add(1, Ordering::SeqCst);
     }
-}
-
-/// Diagnostic routes must stay GUI-free.
-///
-/// `route_args` is a pure classifier over `&str`: constructing eframe options
-/// or the tray happens exclusively in the `LaunchRoute::Gui` branch (wired to
-/// `app::run()` in `main`). Asserting the classifier directly proves that
-/// every diagnostic route returns before any GUI construction could occur;
-/// wiring `route_args` into `main` itself lands with the controller task,
-/// which owns `main.rs`.
-#[test]
-fn diagnostic_routes_do_not_start_gui() {
-    assert_eq!(route_args(["openaircast", "--list"]), LaunchRoute::List);
-    assert_eq!(
-        route_args(["openaircast", "--selftest", "Kitchen"]),
-        LaunchRoute::SelfTest(Some("Kitchen".into()))
-    );
-    assert_eq!(
-        route_args(["openaircast", "--selftest"]),
-        LaunchRoute::SelfTest(None)
-    );
-    assert_eq!(
-        route_args(["openaircast", "--selftest-group", "group.wav"]),
-        LaunchRoute::GroupSelfTest(Some("group.wav".into()))
-    );
-    assert_eq!(
-        route_args(["openaircast", "--selftest-group"]),
-        LaunchRoute::GroupSelfTest(None)
-    );
-    assert_eq!(route_args(["openaircast"]), LaunchRoute::Gui);
 }
 
 /// Readiness fires after `start_stream`, scripted batches flow through as

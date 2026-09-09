@@ -35,56 +35,6 @@ fn silence_sample_count(elapsed: Duration) -> usize {
 /// preferences in `preferences`.
 pub const DEFAULT_VOLUME: f32 = 0.25;
 
-/// Classification of command-line arguments into diagnostic routes and the GUI.
-///
-/// Derived verbatim from the historical `main()` precedence (group selftest
-/// before single selftest before list) so `--list`, `--selftest`, and
-/// `--selftest-group` keep their exact behavior signatures.
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[allow(dead_code)] // adopted by main() in the controller task; proven by tests/backend_lifecycle.rs
-pub enum LaunchRoute {
-    /// Launch the Control Center GUI; the only route touching eframe/tray.
-    Gui,
-    /// Print discovered AirPlay devices and exit.
-    List,
-    /// Single-receiver diagnostic session; optional trailing label/file arg.
-    SelfTest(Option<String>),
-    /// Multi-receiver PTP group diagnostic session; optional trailing arg.
-    GroupSelfTest(Option<String>),
-}
-
-/// Classifies CLI arguments WITHOUT launching anything.
-///
-/// Pure function over the argument strings — no discovery, no audio device,
-/// no window construction — so tests can prove diagnostic routes stay
-/// GUI-free. A flag's payload is the immediately following argument when it
-/// exists and is not itself a flag.
-///
-/// NOTE: `main()` still classifies inline (it predates this helper and lives
-/// in the controller task's ownership scope). Adopting `route_args` there is
-/// behavior-preserving by construction.
-#[allow(dead_code)] // adopted by main() in the controller task; proven by tests/backend_lifecycle.rs
-pub fn route_args<'a>(args: impl IntoIterator<Item = &'a str>) -> LaunchRoute {
-    let collected: Vec<&str> = args.into_iter().collect();
-    let flag_value = |flag: &str| -> Option<String> {
-        let position = collected.iter().position(|arg| *arg == flag)?;
-        collected
-            .get(position + 1)
-            .filter(|next| !next.starts_with("--"))
-            .map(|value| (*value).to_owned())
-    };
-    if collected.contains(&"--selftest-group") {
-        return LaunchRoute::GroupSelfTest(flag_value("--selftest-group"));
-    }
-    if collected.contains(&"--selftest") {
-        return LaunchRoute::SelfTest(flag_value("--selftest"));
-    }
-    if collected.contains(&"--list") {
-        return LaunchRoute::List;
-    }
-    LaunchRoute::Gui
-}
-
 /// Discover AirPlay 2 audio devices on the LAN, HomePods first.
 pub async fn discover(timeout: Duration) -> anyhow::Result<Vec<Device>> {
     let browser = ServiceBrowser::new()?;

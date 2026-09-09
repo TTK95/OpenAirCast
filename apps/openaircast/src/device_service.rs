@@ -202,17 +202,6 @@ pub(crate) fn receiver_records(devices: &[Device]) -> Vec<ReceiverState> {
     records
 }
 
-/// Rapid slider input collapses to the newest finite clamped value.
-#[allow(dead_code)] // exercised by device_service::tests; backend coalescing lands in subproject 2.
-pub(crate) fn newest_volume(values: &[f32]) -> Option<f32> {
-    values
-        .iter()
-        .rev()
-        .find(|value| value.is_finite())
-        .copied()
-        .map(|value| value.clamp(0.0, 1.0))
-}
-
 /// The volume file *this* service writes: `%APPDATA%\volume.txt`.
 ///
 /// Named rather than spelled into the store below because a second reader
@@ -468,7 +457,7 @@ mod tests {
     use airplay_core::{Device, DeviceId, Features, Version};
 
     use super::{
-        effect_to_command, newest_volume, receiver_records, resolve_devices, DeviceServiceHandle,
+        effect_to_command, receiver_records, resolve_devices, DeviceServiceHandle,
         LegacyDevicePreferences,
     };
     use crate::app::{
@@ -632,14 +621,6 @@ mod tests {
                 },
             ]
         );
-    }
-
-    #[test]
-    fn volume_bursts_coalesce_to_the_newest_finite_value() {
-        assert_eq!(newest_volume(&[]), None);
-        assert_eq!(newest_volume(&[0.2, f32::NAN, 0.8]), Some(0.8));
-        assert_eq!(newest_volume(&[0.2, f32::INFINITY]), Some(0.2));
-        assert_eq!(newest_volume(&[1.7]), Some(1.0));
     }
 
     #[test]
