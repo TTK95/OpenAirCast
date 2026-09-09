@@ -1,0 +1,42 @@
+/target
+**/*.rs.bk
+/.worktrees/
+
+# Built app — published via GitHub Releases, not committed.
+/dist/
+
+# Upstream analysis/scratch
+framework_analysis
+cross-compile.sh
+deploy-to-pi.sh
+
+# Editor / OS cruft
+.vs/
+.idea/
+*.pdb
+*.user
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Local visual-design companion sessions
+/.superpowers/
+
+# Local Claude/Codex assistant instructions and state
+CLAUDE.md
+claude.md
+CLAUDE.local.md
+.claude/
+.claude-*
+.claude.*
+CODEX.md
+codex.md
+CODEX.local.md
+.codex/
+.codex-*
+.codex.*
+AGENTS.md
+ADVISOR.md
+
+**/tests/snapshots/**/*.new.png
+**/tests/snapshots/**/*.diff.png
