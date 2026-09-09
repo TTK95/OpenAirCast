@@ -1,5 +1,9 @@
 # Clean integration — 2026-09-09
 
+> Historical integration record, not an installation guide. Use the
+> [README](../README.md) and [distribution guide](DISTRIBUTION.md) for portable
+> download/build paths. Local artifacts below are not a GitHub publication.
+
 The owner requested the GUI worktree be merged back and the repository cleaned
 up, retaining the accepted Suspend/Cancel bug. The original product base was
 `openaircast/main` at `8e04492`; the completed worktree head was `74c02e3`.
@@ -7,11 +11,11 @@ The main checkout fast-forwarded to that head without conflicts. No application
 code was changed by integration or cleanup. `master` and unrelated branches
 are not silently retargeted.
 
-## Current working locations
+## Working locations at the time of integration
 
-- Main checkout: `C:/Users/Thorsten/Documents/Claude/Projects/HomePodCast`.
+- Main checkout: the local repository root (where `Cargo.toml` resides).
 - Product branch: `openaircast/main`.
-- Current optimized application: `dist/OpenAirCast.exe`.
+- Optimized application staged at that time: `dist/OpenAirCast.exe`.
 - Portable/source archives and checksums: see
   [RELEASE_ARTIFACTS_2026-09-09.md](RELEASE_ARTIFACTS_2026-09-09.md).
 

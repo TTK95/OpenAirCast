@@ -1,5 +1,11 @@
 # OpenAirCast — Current Execution Handoff
 
+> **Distribution clarification, 2026-09-09:** Public GitHub Releases are currently
+> empty. `dist/` is local staging, not a published download, and existing ZIPs can
+> predate the latest app changes. Follow [distribution](DISTRIBUTION.md) and the
+> [README](../README.md) for current build/install paths. Dated evidence below
+> must not be read as a current-publication claim.
+
 > **Owner override, 2026-09-09:** Commit, merge and push are now explicitly
 > authorized despite the known Suspend/Cancel bug. Treat it as an accepted
 > integration risk, not a fixed defect. The earlier no-merge/no-push hold below
@@ -26,10 +32,10 @@
    this defect for the current integration; it is not fixed. All three earlier
    volume/editor findings were addressed in `047dfc6`.
 2. Work in the main checkout on `openaircast/main`, not the retired GUI worktree.
-   The current optimized executable is `dist/OpenAirCast.exe`; portable and
-   corresponding-source ZIP files are beside it. Use
+   A successful `build.ps1` writes `dist/OpenAirCast.exe`; older portable and
+   corresponding-source ZIP files are not refreshed by that build. Use
    [artifact checksums](RELEASE_ARTIFACTS_2026-09-09.md) and
-   [integration notes](INTEGRATION_2026-09-09.md) to identify the clean version.
+   [integration notes](INTEGRATION_2026-09-09.md) only to identify those historical builds.
    Native visual/navigation/accessibility acceptance is still unperformed:
    capture failed with `SetIsBorderRequired`/`0x80004002`. No fresh app launch
    or playback is implied by packaging or integration.

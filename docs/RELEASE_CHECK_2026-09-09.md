@@ -1,5 +1,10 @@
 # OpenAirCast — release check, 2026-09-09
 
+> Historical test/build evidence for the revisions named below. Absolute paths
+> in old test records identify that developer's test environment; they are not
+> installation instructions. Use [distribution](DISTRIBUTION.md) for current
+> output locations and public-release status.
+
 > **Owner decision after review:** The owner explicitly authorizes commit,
 > merge, push and release preparation despite the documented Suspend/Cancel
 > defect. The earlier technical recommendation against merge is retained below

@@ -1,5 +1,9 @@
 # Prepared release artifacts — 2026-09-09
 
+> Historical local packaging record. These hashes describe the source revision
+> listed below, not the latest build or a public download. For current build and
+> publication instructions, see [distribution](DISTRIBUTION.md).
+
 OpenAirCast 0.1.0, Windows x64. These are local artifacts, not an uploaded
 GitHub Release. The owner accepts the known Suspend/Cancel issue described in
 [release notes](RELEASE_NOTES_2026-09-09.md). Unsigned; native/physical and full

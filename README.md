@@ -15,11 +15,34 @@ I maintain OpenAirCast as [TTK95](https://github.com/TTK95). It captures audio f
 - Offers a global shortcut, German and English text, and light and dark themes.
 - Includes a guided speaker test and a diagnostics report you can copy.
 
-## Getting started
+## Download and install (Windows x64)
+
+OpenAirCast is portable: there is currently no MSI/EXE installer and no `winget`
+package. You do not need Rust or Git to run a packaged version.
+
+**Availability checked on 2026-09-09:** this repository has no public GitHub
+Release yet. Local builds and prepared ZIP files are not published downloads.
+Until a release is uploaded, use [Build from source](#build-from-source).
+
+When a release is available:
+
+1. Open [GitHub Releases](https://github.com/TTK95/OpenAirCast/releases).
+2. Under **Assets**, download the Windows x64 portable ZIP, not GitHub's
+   automatically generated **Source code** ZIP.
+3. Extract the complete ZIP to a folder you own, such as
+   `%LOCALAPPDATA%\Programs\OpenAirCast`. This is a suggested location, not a
+   folder that already exists on your PC.
+4. Run `OpenAirCast.exe` from the extracted folder. Administrator mode is not
+   normally required. An unsigned development build is not a signed stable release.
+
+For updates, quit the app from its tray menu before replacing its extracted
+files. User settings are stored separately in `%APPDATA%\OpenAirCast`.
+
+## First use
 
 1. Connect your PC and speakers to the same local network.
 2. Run `OpenAirCast.exe`.
-3. Select your speakers on **Home** and choose **Apply speaker changes**.
+3. Select your speakers on **Overview** and apply the selection changes.
 4. Start streaming and play audio on the selected Windows playback device.
 5. Adjust the master volume or individual speaker levels.
 
@@ -43,15 +66,63 @@ The [development notes](docs/NEXT_STEPS.md) track remaining work. The [validatio
 
 ## Build from source
 
-Install stable Rust and the Visual Studio C++ Build Tools on Windows. Then run:
+Cloning this repository downloads source code, **not an installed application**.
+Paths below are relative to the folder created by `git clone`; they are not
+paths on the maintainer's PC.
+
+Prerequisites on Windows x64:
+
+- Git for Windows.
+- Rust with the MSVC toolchain (the app requires Rust 1.95 or newer).
+- Visual Studio C++ Build Tools with **Desktop development with C++**, including
+  the MSVC compiler/linker and a Windows SDK. Open a new terminal after installation.
+
+In PowerShell, from a directory where you want to keep the source:
 
 ```powershell
-cargo fetch --locked
-cargo test --offline --locked -j 2 --target x86_64-pc-windows-msvc --workspace -- --test-threads=2
-cargo build --offline --locked -j 2 --target x86_64-pc-windows-msvc --release -p homepod-cast --bin openaircast
+git clone --branch openaircast/main https://github.com/TTK95/OpenAirCast.git
+cd OpenAirCast
+rustup target add x86_64-pc-windows-msvc
+.\build.ps1
+.\dist\OpenAirCast.exe
 ```
 
-The executable is written to `target/x86_64-pc-windows-msvc/release/openaircast.exe`.
+`build.ps1` runs the embedded-asset test, builds the optimized Windows x64 app
+with the lockfile and two compiler jobs, then copies it to `dist\OpenAirCast.exe`.
+The first build needs internet access to download dependencies and can take a
+while. It does not run the complete test suite or publish anything to GitHub.
+
+If your PowerShell policy blocks scripts, use the equivalent Cargo commands
+without changing the policy:
+
+```powershell
+cargo test --locked -j 2 --target x86_64-pc-windows-msvc --target-dir target -p homepod-cast --bin openaircast ui::theme::tests::embedded_assets_are_present_and_icon_has_required_sizes -- --exact --test-threads=2
+cargo build --locked -j 2 --target x86_64-pc-windows-msvc --target-dir target --release -p homepod-cast --bin openaircast
+.\target\x86_64-pc-windows-msvc\release\openaircast.exe
+```
+
+Run each command only if the preceding command succeeds. The manual commands
+leave the executable in `target`; they do not refresh `dist`.
+
+For the full application test suite (no physical playback tests):
+
+```powershell
+cargo test --locked -j 2 --target x86_64-pc-windows-msvc --target-dir target -p homepod-cast -- --test-threads=2
+```
+
+## Where the final version belongs
+
+| Location | Purpose |
+|---|---|
+| GitHub **Releases → Assets** | Public, versioned portable ZIP and matching source; publication is a separate step. |
+| Your extracted download folder | The copy you actually run; no repository is needed. |
+| `dist\OpenAirCast.exe` | Local optimized output after a successful `build.ps1`; not a download link or proof of publication. |
+| `target\x86_64-pc-windows-msvc\release\openaircast.exe` | Cargo's optimized build output. |
+| `target\x86_64-pc-windows-msvc\debug\openaircast.exe` | Development/testing build, not the distributable release. |
+
+`target/` and `dist/` are intentionally excluded from Git. Existing local ZIPs
+are not updated by `build.ps1` and may contain older code. See the
+[distribution checklist](docs/DISTRIBUTION.md) for packaging and publication.
 
 ## Support my work
 

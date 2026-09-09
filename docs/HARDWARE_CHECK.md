@@ -1,5 +1,9 @@
 # Hardwareprüfung und Diagnose
 
+Download, Installation und lokale Build-Ordner sind in der [README](../README.md)
+und der [Distributionsanleitung](DISTRIBUTION.md) beschrieben. Die Build-Nachweise
+weiter unten sind lokale Entwicklungsnachweise, keine veröffentlichten Downloads.
+
 Live-Diagnose für Windows-Eingang und Audioübertragung sowie ein geführter
 lokaler Funktionstest mit einem selbst erzeugten Testton.
 Der Assistent prüft technische Voraussetzungen; das tatsächliche Hören bestätigt
@@ -196,7 +200,7 @@ die Eingangspegelmessung und die Diagnosehinweise. Dabei gefundene Probleme bei
 der Reihenfolge kumulierter PCM-Zähler und fehlenden Quellmesswerten sind mit
 zunächst fehlschlagenden und anschließend erfolgreichen Regressionstests behoben.
 
-## Aktueller lokaler Build — Live-Diagnose, 9. September 2026
+## Lokaler Entwicklungsbuild — Live-Diagnose, 9. September 2026
 
 Datei: `target/x86_64-pc-windows-msvc/debug/openaircast.exe`.
 Windows x64, Entwicklungsprofil (nicht optimiert), nicht signiert.
