@@ -1062,13 +1062,16 @@ fn the_export_is_one_self_contained_json_object() {
 // Structural seal of the alias newtypes
 // ===========================================================================
 
-/// Source text of `diagnostics.rs`, split at the private `alias` submodule.
+/// Diagnostics source, with the private `alias` submodule separated out.
 ///
-/// Returns `(inside, outside)`. The module is a top-level item, so its closing
-/// brace is the first `}` in column zero after the header.
+/// Returns `(inside, outside)`. `outside` includes every other diagnostics
+/// implementation file, so the seal cannot silently move a constructor into a
+/// sibling module after the facade split. The alias module is a top-level item,
+/// so its closing brace is the first `}` in column zero after the header.
 fn diagnostics_source_split_at_alias_module() -> (String, String) {
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diagnostics.rs");
-    let source = std::fs::read_to_string(path)
+    let directory = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diagnostics");
+    let export_path = std::path::Path::new(directory).join("export.rs");
+    let source = std::fs::read_to_string(export_path)
         .expect("the diagnostics module source is readable from the test")
         .replace("\r\n", "\n");
 
@@ -1085,11 +1088,22 @@ fn diagnostics_source_split_at_alias_module() -> (String, String) {
     let inside = source[body_start..end].to_owned();
     let mut outside = source[..start].to_owned();
     outside.push_str(&source[end..]);
+    for entry in std::fs::read_dir(directory).expect("the diagnostics directory is readable") {
+        let path = entry.expect("the diagnostics entry is readable").path();
+        if path.extension().and_then(|extension| extension.to_str()) == Some("rs")
+            && path.file_name().and_then(|name| name.to_str()) != Some("export.rs")
+        {
+            outside.push_str(
+                &std::fs::read_to_string(path)
+                    .expect("every diagnostics implementation file is readable"),
+            );
+        }
+    }
     (inside, outside)
 }
 
-/// Rust visibility is per module, not per type. `diagnostics.rs` is one module
-/// that holds both the alias newtypes and every converter that redacts domain
+/// Rust visibility is per module, not per type. `diagnostics/export.rs` holds
+/// both the alias newtypes and every converter that redacts domain
 /// values, so a private tuple field alone does not stop those converters from
 /// wrapping a receiver name in an alias -- it only stops other files. The
 /// submodule is the boundary that makes the guarantee hold where it matters.
