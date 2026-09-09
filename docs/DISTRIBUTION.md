@@ -3,36 +3,13 @@
 ## Current publication status
 
 Checked on 2026-09-09: the public GitHub Releases list is empty. Prepared files
-on a developer's disk are not a published release. The dated release/integration
-records in this directory document earlier local checks, not an installation
-location or a guarantee that their binaries match today's source.
+on a developer's disk are not a published release. See [Status](STATUS.md) for current verification and known limitations.
 
 The [README](../README.md) is the user-facing installation guide. All paths in
 this document are relative to the repository root unless explicitly identified
 as Windows user-data locations.
 
 ## Local build outputs
-
-### Verified local optimized build, 2026-09-09
-
-The corrected `build.ps1` was executed successfully: one embedded-asset test
-passed, and the optimized build finished with exit 0 in 14 min 17 s. Existing
-dependency warnings remain. The copied executable matches Cargo's output.
-No app launch, playback test or full test-suite rerun was performed in this
-distribution-only change.
-
-- Application source: `07872d6863f0f671f332cb969b4fd4285dd08965`.
-- Output: `dist/OpenAirCast.exe`, Windows x64, optimized, unsigned.
-- Built at 2026-09-09 20:07:54 UTC; 24,068,096 bytes.
-- SHA-256: `9AB6686A6F280C05FA81B4B7BBB69922874926EC3D2EE899F025CEB68E299A9A`.
-- On the maintainer's checkout, the earlier portable directory, ZIPs and
-  checksums were moved to `dist/archive/20260909-047dfc6/`, not deleted. The
-  archived manifest's executable path was adjusted to its preserved subfolder;
-  artifact hashes are unchanged. These local files are not included in a clone.
-
-A new ZIP/source package has **not** been produced for this build. The archives
-above belong to the older revision. The canonical local EXE is current, while
-public-release availability remains as stated above.
 
 ### Rebuild on your own machine
 
@@ -76,9 +53,9 @@ error handling and file copying. It does not compile Rust or validate a binary.
    An archive/checksum proves packaging identity, not working playback.
 4. Create the matching tag and **GitHub Release**, then upload the portable ZIP,
    matching source archive and checksum file as **Assets**. This is the actual
-   publication step, separate from `git push`. Use a pre-release designation
-   while the documented development/validation limitations remain. This guide
-   does not itself authorize an upload or changing an existing release.
+   publication step, separate from `git push`. Select the release designation explicitly with the owner. A regular release
+   with accepted known issues must still disclose them and uncompleted checks.
+   This guide does not itself authorize an upload or changing an existing release.
 5. Verify that the release and assets are publicly downloadable and that the
    downloaded hashes match. Only then replace the README's unavailable notice
    with the real release link. Update this status and the release evidence;

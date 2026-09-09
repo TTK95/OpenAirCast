@@ -1,14 +1,8 @@
-# Windows Native — verbindliche UI-Fortschreibung
+# Windows Native — UI design reference
 
-> Freigabeentscheidung vom 2026-09-09: Der Eigentümer erlaubt Commit, Merge,
-> Push und Release-Vorbereitung trotz des bekannten Standby-/Abbruchfehlers.
-> Der Fehler ist akzeptiert, nicht behoben; frühere Merge-Sperren in diesem
-> Dokument sind damit historisch. Native Sicht- und Accessibility-Prüfungen
-> bleiben unbestätigt. Details: [Releasehinweise](RELEASE_NOTES_2026-09-09.md).
-
-Stand: 2026-09-09. Gilt für die bestehende egui-Desktop-Anwendung, nicht für
-einen Browser-Prototyp. Windows Native bezeichnet die Gestaltung; es ist keine
-Migration auf WinUI. Diese Fortschreibung ergänzt die vorhandene Designspezifikation.
+Design constraints for the egui desktop app, not a migration to WinUI.
+Current product limitations and verification are in [Status](STATUS.md).
+This document describes intended behavior; it is not a hardware acceptance report.
 
 ## Ziel und Hierarchie
 
@@ -226,48 +220,3 @@ Hörprobe der Einzelpegel ab; der native Windows-Fenster-/DPI-Test bleibt offen.
    Space/Enter, Größenänderung, Scrollen, Kontrast, Tray und lange Gerätenamen.
 4. Echte Audiogerätewechsel sowie Start/Stop und Wiederverbindung mit Hardware
    prüfen. Headless-Tests ersetzen diese Freigabe nicht.
-
-Historisch am 2026-09-08 wurde der native App-Start zunächst wegen fehlender App-Freigabe
-abgelehnt; nach dem Neustart der Host-App mit aktualisierten Rechten gelang er.
-Die Screenshot-Schnittstelle scheitert weiterhin mit `SetIsBorderRequired`
-und Fehler `0x80004002`. Daher ist diese Änderung **nicht visuell im laufenden
-Windows-Fenster abgenommen**; der damalige native Start ist bestätigt.
-Den aktuellen Build, den begrenzten nativen UI-Check und die verbleibende
-Matrix dokumentiert [die Releaseprüfung vom 2026-09-09](RELEASE_CHECK_2026-09-09.md).
-Die damalige Debug-EXE zu `b639d30` startete bei diesem Check erfolgreich; vorher waren
-Auto-Connect ausgeschaltet und kein OpenAirCast-Prozess aktiv. Beide aktuellen
-Screenshotversuche scheiterten wieder mit `SetIsBorderRequired`/`0x80004002`.
-Textbasierte UI Automation zeigte nur Fenster-/Titelleisten-Elemente, keine
-Seitencontrols. Die native Sicht-, Navigations- und Accessibility-Abnahme bleibt
-daher blockiert und ungetestet. Es gab weder blinde Eingaben noch Audio- oder
-Einstellungsänderungen; die App blieb am Ende für den Eigentümer im Vordergrund.
-Diese Startbestätigung gilt nur für den dokumentierten alten Hash, nicht für
-die späteren Reviewfixes bis `047dfc6`. Die Gesamtbranch-Review und ihre einzige
-Korrekturrunde sind durchgeführt: Alle drei ursprünglichen Befunde sind in
-`047dfc6` geschlossen (Audiofreigabe, bestätigter Masterpegel, erneute Auswahl
-von Offline-Mitgliedern). **Software NICHT merge-bereit:** Ein neuer Important-
-Restbefund bleibt offen. Suspend während der vorbereiteten Aktivierung kann
-nach Cleanup die Stopped-Meldung der Generation verlieren; Cancel vor Ende der
-zwei Sekunden langen Resume-Beruhigung kann die Shell in Stopping festhalten.
-Nächste Quellcodearbeit: Regression „Suspend während Aktivierung → Cancel vor
-Resume-Settle“ zuerst rot nachweisen, Stopped nach begrenztem Cleanup erhalten,
-danach fokussiert reviewen und neu verifizieren. Keine zweite Quellcode-
-Korrekturrunde in diesem Abschluss; grüne Bestandstests ersetzen diesen Test
-nicht. Ein erfolgreicher Gruppenbeleg bestätigt
-nur Speicherung/Startabsicht: Erst eine passende Backend-Sitzungsgeneration
-darf den neuen Start beantworten. Frühes Recovering bleibt abbrechbar.
-Der historische Workspace-Lauf auf `3595057` hatte 2.092 bestandene Tests,
-0 Fehler und 15 ignorierte Fälle; das ist keine aktuelle Verifikation und
-ersetzt keine native Sichtprüfung. Aktuelle Softwarebelege stehen getrennt
-in der verlinkten Releaseprüfung. Es gab keinen neuen nativen Start oder Audiotest.
-Frische Verifikation von `047dfc6070cf42d8404aca779dd17c57e5af6358`:
-**2.104 bestanden, 0 Fehler, 15 ignoriert**, 44 Workspace-Ziele einschließlich
-Doctests; scoped Clippy und normaler Debug-Build jeweils Exit 0 mit bestehenden
-Warnungen. SHA-256 der nicht gestarteten normalen Debug-EXE:
-`55201E6BEB941BBE07F0957C5A23744DFE2D8DC7C0BD7142B069E0B5B71B12A6`.
-Der Important-Restbefund bleibt trotz dieser Ergebnisse offen; Software weiterhin
-nicht merge-bereit. Pfad, Größe, Zeitpunkt und Warnungszahlen stehen in der Releaseprüfung.
-Die frühere EXE wurde für den laufenden
-Prozess unter `target/x86_64-pc-windows-msvc/debug/openaircast-ui-check-b639d30.exe`
-erhalten. Ein neuer Build am normalen Ausgabepfad aktualisiert diesen Prozess
-nicht; der Eigentümer muss für den neuen Stand ausdrücklich beenden/neustarten.

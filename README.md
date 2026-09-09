@@ -62,7 +62,8 @@ OpenAirCast is still in development. I have tested playback with three speakers 
 - Suspending Windows during connection and cancelling just after wake can leave the app at **Stopping**. If this happens, quit from the tray and restart the app.
 - Launch at Windows startup is not implemented.
 
-The [development notes](docs/NEXT_STEPS.md) track remaining work. The [validation notes](docs/VALIDATION.md) record hardware tests.
+See [status and remaining work](docs/STATUS.md) for verification limits and open tasks,
+and the [documentation index](docs/README.md) for user and developer guides.
 
 ## Build from source
 
