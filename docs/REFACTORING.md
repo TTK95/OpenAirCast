@@ -1,7 +1,6 @@
 # OpenAirCast source refactoring proposal
 
-**Status:** planned, not implemented. The current request authorizes planning;
-source migration and release publication are separate work steps.
+**Status:** implementation authorized; tasks below are checked off only after verification.
 
 **Goal:** make the Windows product immediately identifiable and reduce the
 number of responsibilities held in very large Rust modules without changing behavior.
@@ -87,7 +86,7 @@ Execute one task per reviewable commit. Do not combine moves with bug fixes.
 Paths below are repository-relative. Stop on failed verification; never weaken
 a behavioral assertion to make a move pass.
 
-### 1. Make the Windows product visible
+### Task 1: Make the Windows product visible
 
 Files: move `crates/homepod-cast/` to `apps/openaircast/`; update root
 `Cargo.toml`, the moved `Cargo.toml` and every actual tracked reference to the
@@ -110,7 +109,7 @@ change only paths that depend on the move.
 **Acceptance:** all 12 workspace members remain present; existing build commands,
 asset embedding, examples and public imports still resolve. No settings migration.
 
-### 2. Separate large test bodies without widening APIs
+### Task 2: Separate large test bodies without widening APIs
 
 Files under `apps/openaircast/src`: `ui/pages/mod.rs`, `ui/presentation.rs`,
 `app/reducer.rs` and adjacent private test modules.
@@ -129,7 +128,7 @@ Files under `apps/openaircast/src`: `ui/pages/mod.rs`, `ui/presentation.rs`,
 files easier to read. No arbitrary line-count quota or mechanical splitting
 of functions that share an invariant.
 
-### 3. Split the backend bridge behind the existing module name
+### Task 3: Split the backend bridge behind the existing module name
 
 Files: replace `apps/openaircast/src/backend_bridge.rs` with
 `backend_bridge/mod.rs`, `commands.rs`, `projection.rs`, `runtime.rs` and
@@ -148,7 +147,7 @@ private `tests.rs` as responsibilities are extracted.
 **Acceptance:** no I/O in rendering or the pure reducer; no new shared mutable
 owner; late responses cannot resurrect stopped sessions or confirm newer requests.
 
-### 4. Split diagnostics, then review actor responsibilities
+### Task 4: Split diagnostics, then review actor responsibilities
 
 Files: `apps/openaircast/src/diagnostics.rs` to `diagnostics/mod.rs` with
 private `registry.rs`, `snapshot.rs`, `export.rs`, `tests.rs`; inspect
@@ -166,7 +165,7 @@ private `registry.rs`, `snapshot.rs`, `export.rs`, `tests.rs`; inspect
 **Acceptance:** unknown is not zero; local send counters are not remote reception;
 test-tone samples do not masquerade as measured Windows input. No timing changes.
 
-### 5. Finish the repository boundary and release handoff
+### Task 5: Finish the repository boundary and release handoff
 
 Files: optionally move `crates/airplay-tui/` to `apps/airplay-tui/` with its
 manifest, workspace and script consumers; update `docs/README.md` and this map.
