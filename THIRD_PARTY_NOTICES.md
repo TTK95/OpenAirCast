@@ -58,20 +58,20 @@ only for the linked library works as permitted by their dual licensing.
 
 ### Inter Variable
 
-- Files: `crates/homepod-cast/assets/fonts/InterVariable.ttf`
+- Files: `apps/openaircast/assets/fonts/InterVariable.ttf`
 - Source: Google Fonts tree, pinned commit
   `ec626514f79f831f1ab848a82114a0ce7e2d6372`, path `ofl/inter/Inter[opsz,wght].ttf`
 - License: SIL Open Font License 1.1 (full text in
-  `crates/homepod-cast/assets/licenses/Inter-OFL-1.1.txt`)
+  `apps/openaircast/assets/licenses/Inter-OFL-1.1.txt`)
 - Copyright: The Inter Project Authors (https://github.com/rsms/inter)
 - The font name "Inter" and reserved font names are preserved unchanged.
 
 ### IBM Plex Mono
 
-- Files: `crates/homepod-cast/assets/fonts/IBMPlexMono-Regular.ttf`
+- Files: `apps/openaircast/assets/fonts/IBMPlexMono-Regular.ttf`
 - Source: Google Fonts tree, pinned commit
   `ec626514f79f831f1ab848a82114a0ce7e2d6372`, path `ofl/ibmplexmono/IBMPlexMono-Regular.ttf`
 - License: SIL Open Font License 1.1 (full text in
-  `crates/homepod-cast/assets/licenses/IBM-Plex-Mono-OFL-1.1.txt`)
+  `apps/openaircast/assets/licenses/IBM-Plex-Mono-OFL-1.1.txt`)
 - Copyright: Copyright © 2017 IBM Corp.
 - The font name "IBM Plex" and reserved font names are preserved unchanged.

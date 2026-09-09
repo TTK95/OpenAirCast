@@ -21,7 +21,7 @@
 //! All four are the same class: something built, tested in isolation, and
 //! never driven. The matrix below drives.
 //!
-//! This module lives inside the binary on purpose. `crates/homepod-cast/tests`
+//! This module lives inside the binary on purpose. `apps/openaircast/tests`
 //! cannot see `crate::ui` or `crate::app`, so an integration test could not
 //! make any of these statements.
 

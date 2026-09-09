@@ -48,7 +48,7 @@ artifacts. Encrypted wire bytes must remain per receiver.
 
 ## D. Windows-specific changes to preserve
 
-- `crates/homepod-cast`: WASAPI loopback, native tray/settings UI, hotkey,
+- `apps/openaircast`: WASAPI loopback, native tray/settings UI, hotkey,
   keepalive and stop timeout.
 - Cross-platform `socket2` send-buffer sizing in `airplay-audio/src/rtp.rs`.
 - Unix-only DSCP/SO_PRIORITY guards.

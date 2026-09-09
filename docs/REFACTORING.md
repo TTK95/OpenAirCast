@@ -15,17 +15,17 @@ Design constraints: [UI design](UI_DESIGN.md). Known behavior: [Status](STATUS.m
 
 ## Findings
 
-The workspace already has a useful protocol-crate separation. The application
-is less obvious because OpenAirCast lives in `crates/homepod-cast`, while both
-applications and libraries share the same parent directory.
+The workspace has a useful protocol-crate separation. OpenAirCast now lives in
+`apps/openaircast`, making the Windows product distinct from the reusable
+libraries under `crates`.
 
 | Current location | Responsibility |
 |---|---|
-| `crates/homepod-cast` | Windows product: binary `openaircast`, package `homepod-cast`, library `homepod_cast` |
+| `apps/openaircast` | Windows product: binary `openaircast`, package `homepod-cast`, library `homepod_cast` |
 | `crates/airplay-tui` | Separate terminal application, including Linux-oriented paths |
 | Other `crates/airplay-*` | Protocol, crypto, discovery, audio, timing and reusable client libraries |
-| `crates/homepod-cast/src/app` | Shell state, events, effects and reducer |
-| `crates/homepod-cast/src/backend` | Commands, state owner and I/O supervisors |
+| `apps/openaircast/src/app` | Shell state, events, effects and reducer |
+| `apps/openaircast/src/backend` | Commands, state owner and I/O supervisors |
 
 The largest files include `backend_bridge.rs` (~7,976 lines), `app/reducer.rs`
 (~4,622), `ui/presentation.rs` (~4,022), `backend/controller.rs` (~3,958) and
@@ -88,7 +88,7 @@ a behavioral assertion to make a move pass.
 
 ### Task 1: Make the Windows product visible
 
-Files: move `crates/homepod-cast/` to `apps/openaircast/`; update root
+Files: move the Windows product to `apps/openaircast/`; update root
 `Cargo.toml`, the moved `Cargo.toml` and every actual tracked reference to the
 old folder. Inspect `build.ps1`, `tests/build-script.tests.ps1`, CI and docs;
 change only paths that depend on the move.
@@ -99,7 +99,7 @@ change only paths that depend on the move.
   `apps/openaircast`; rewrite its `../airplay-*` dependencies to
   `../../crates/airplay-*`. Retain package `homepod-cast`, library
   `homepod_cast`, binary `openaircast`, version, features and dependency versions.
-- [ ] Search with `git grep -n 'crates/homepod-cast'`; update live consumers,
+- [ ] Search for tracked references to the previous application path; update live consumers,
   including source-string tests, asset loading and relative `include_str!`
   paths. Preserve root `LICENSE` and `THIRD_PARTY_NOTICES.md`.
 - [ ] Compare Cargo metadata: same package names, targets, features and

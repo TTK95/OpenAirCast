@@ -10,10 +10,10 @@ name = "openaircast"
 path = "src/main.rs"
 
 [dependencies]
-airplay-core = { path = "../airplay-core" }
-airplay-client = { path = "../airplay-client" }
-airplay-discovery = { path = "../airplay-discovery" }
-airplay-audio = { path = "../airplay-audio" }
+airplay-core = { path = "../../crates/airplay-core" }
+airplay-client = { path = "../../crates/airplay-client" }
+airplay-discovery = { path = "../../crates/airplay-discovery" }
+airplay-audio = { path = "../../crates/airplay-audio" }
 
 wasapi = "0.23"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
