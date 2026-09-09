@@ -1,205 +1,104 @@
-# OpenAirCast source refactoring proposal
+# OpenAirCast source map and refactoring history
 
-**Status:** implementation authorized; tasks below are checked off only after verification.
+**Status:** source refactoring implemented and source verification passed;
+final review, release build, packaging and publication remain separate gates.
 
-**Goal:** make the Windows product immediately identifiable and reduce the
-number of responsibilities held in very large Rust modules without changing behavior.
+The refactoring made the Windows product visible in the repository and split
+two large internal modules without changing package names, public interfaces,
+protocol behavior or the single-owner backend model.
 
-**Architecture:** separate product location from reusable libraries, then split
-modules behind their existing interfaces. Keep the single-owner backend actor,
-pure shell reducer and snapshot-driven UI.
-
-**Stack and constraints:** Rust 2021, app Rust 1.95+, Cargo workspace, Windows
-MSVC, egui/eframe. No new framework, dependency upgrade or protocol change.
-Design constraints: [UI design](UI_DESIGN.md). Known behavior: [Status](STATUS.md).
-
-## Findings
-
-The workspace has a useful protocol-crate separation. OpenAirCast now lives in
-`apps/openaircast`, making the Windows product distinct from the reusable
-libraries under `crates`.
-
-| Current location | Responsibility |
-|---|---|
-| `apps/openaircast` | Windows product: binary `openaircast`, package `homepod-cast`, library `homepod_cast` |
-| `crates/airplay-tui` | Separate terminal application, including Linux-oriented paths |
-| Other `crates/airplay-*` | Protocol, crypto, discovery, audio, timing and reusable client libraries |
-| `apps/openaircast/src/app` | Shell state, events, effects and reducer |
-| `apps/openaircast/src/backend` | Commands, state owner and I/O supervisors |
-
-The largest files include `backend_bridge.rs` (~7,976 lines), `app/reducer.rs`
-(~4,622), `ui/presentation.rs` (~4,022), `backend/controller.rs` (~3,958) and
-`diagnostics.rs` (~3,900). These totals **include tests**. `ui/pages/mod.rs`
-is ~3,892 lines but mostly tests; splitting it is not evidence that its renderer
-needs an architectural rewrite.
-
-## Options and recommendation
-
-1. **Recommended: distinguish apps from libraries, then split incrementally.**
-   Clear product entry point; localized manifest/path updates; behavior remains stable.
-2. Keep all packages under `crates` and add a source map only. Lowest risk,
-   but the product remains harder to identify in the file tree.
-3. Merge libraries into one app or rename every package/module at once. Reject:
-   large review surface, unnecessary API churn and greater regression risk.
-
-`apps/` is a project organization choice, not a Cargo requirement. Keep Rust's
-standard `src`, `tests`, `examples` and `benches` names. Cargo documents these
-conventions in [Package Layout](https://doc.rust-lang.org/cargo/guide/project-layout.html);
-[Workspaces](https://doc.rust-lang.org/cargo/reference/workspaces.html) allow
-explicit member paths and a shared lockfile/build output.
-
-## Target layout
+## Current repository map
 
 ```text
 OpenAirCast/
-├── Cargo.toml / Cargo.lock       workspace, shared dependency resolution
+├── Cargo.toml / Cargo.lock
 ├── apps/
-│   ├── openaircast/              Windows product (first migration)
-│   │   ├── Cargo.toml           package remains homepod-cast initially
-│   │   ├── assets/              existing fonts/icons and licenses
-│   │   ├── src/
-│   │   │   ├── main.rs          CLI dispatch and app startup
-│   │   │   ├── lib.rs           existing public contract
-│   │   │   ├── app/             state, reducer, effects
-│   │   │   ├── backend/         single-owner actor and I/O supervisors
-│   │   │   ├── backend_bridge/  command translation and snapshot projection
-│   │   │   ├── diagnostics/     registry, snapshots and safe export
-│   │   │   ├── ui/              pages, components, presentation, localization
-│   │   │   └── platform/        Windows integration
-│   │   └── tests/              public-contract integration tests
-│   └── airplay-tui/             terminal product (separate later migration)
-├── crates/airplay-*/             reusable libraries
-├── docs/                        indexed current documentation
-├── tests/                       repository/build-script checks
-├── build.ps1                    supported Windows build entry point
-└── target/ and dist/            ignored compiler output and packaging
+│   └── openaircast/
+│       ├── Cargo.toml
+│       ├── assets/
+│       ├── src/
+│       │   ├── main.rs
+│       │   ├── lib.rs
+│       │   ├── app/
+│       │   ├── backend/
+│       │   ├── backend_bridge/
+│       │   ├── diagnostics/
+│       │   ├── ui/
+│       │   └── platform/
+│       └── tests/
+├── crates/
+│   ├── airplay-tui/
+│   └── airplay-*/
+├── docs/
+├── tests/
+└── build.ps1
 ```
 
-The tree emphasizes changed boundaries, not every retained file. `cast.rs`,
-`device_service.rs`, `preferences.rs`, `tray.rs` and `setup_diagnostic.rs` stay
-in place until their callers and ownership have been reviewed. Legacy labels
-or `allow(dead_code)` do not justify deleting live CLI/transport paths.
+`apps/openaircast` is the Windows product. Its Cargo package remains
+`homepod-cast`, its library remains `homepod_cast`, and its binary remains
+`openaircast`. The other `airplay-*` packages remain reusable protocol,
+discovery, audio, timing and client crates.
 
-## Migration tasks
+The terminal application intentionally remains at `crates/airplay-tui`. It
+depends on Linux-only Bluetooth/BlueALSA and ALSA paths, and this refactoring
+had no validated Linux environment. Windows test results therefore do not
+claim to validate or justify moving that application.
 
-Execute one task per reviewable commit. Do not combine moves with bug fixes.
-Paths below are repository-relative. Stop on failed verification; never weaken
-a behavioral assertion to make a move pass.
+## Implemented module boundaries
 
-### Task 1: Make the Windows product visible
+The shell state, events, effects and reducer remain under `src/app`; backend
+commands, state ownership and I/O supervisors remain under `src/backend`.
+Private test bodies were moved beside their parent modules without widening
+production visibility.
 
-Files: move the Windows product to `apps/openaircast/`; update root
-`Cargo.toml`, the moved `Cargo.toml` and every actual tracked reference to the
-old folder. Inspect `build.ps1`, `tests/build-script.tests.ps1`, CI and docs;
-change only paths that depend on the move.
+The former `backend_bridge.rs` is now:
 
-- [ ] Record package/target/dependency metadata before moving:
-  `cargo metadata --no-deps --format-version 1 --locked`.
-- [ ] Move the directory with Git. Change the workspace member to
-  `apps/openaircast`; rewrite its `../airplay-*` dependencies to
-  `../../crates/airplay-*`. Retain package `homepod-cast`, library
-  `homepod_cast`, binary `openaircast`, version, features and dependency versions.
-- [ ] Search for tracked references to the previous application path; update live consumers,
-  including source-string tests, asset loading and relative `include_str!`
-  paths. Preserve root `LICENSE` and `THIRD_PARTY_NOTICES.md`.
-- [ ] Compare Cargo metadata: same package names, targets, features and
-  dependencies; only application manifest/source paths differ. Run checks below.
-- [ ] Commit the move only. Rollback is a revert of this commit, not a hard reset.
+- `backend_bridge/mod.rs` — stable module boundary and narrow re-exports
+- `backend_bridge/commands.rs` — effect and command translation
+- `backend_bridge/projection.rs` — backend-to-shell snapshot projection
+- `backend_bridge/runtime.rs` — worker, channel and lifetime management
+- `backend_bridge/tests.rs` — private regression tests
 
-**Acceptance:** all 12 workspace members remain present; existing build commands,
-asset embedding, examples and public imports still resolve. No settings migration.
+The former `diagnostics.rs` is now:
 
-### Task 2: Separate large test bodies without widening APIs
+- `diagnostics/mod.rs` — preserved diagnostics exports
+- `diagnostics/snapshot.rs` — diagnostic state and snapshot types
+- `diagnostics/ring.rs` — bounded history storage
+- `diagnostics/registry.rs` — mutable registration and session ownership
+- `diagnostics/export.rs` — privacy-safe report formatting
+- `diagnostics/tests.rs` — private regression tests
 
-Files under `apps/openaircast/src`: `ui/pages/mod.rs`, `ui/presentation.rs`,
-`app/reducer.rs` and adjacent private test modules.
+`cast.rs`, `device_service.rs`, `preferences.rs`, `tray.rs` and
+`setup_diagnostic.rs` remain in place. The live rollback and migration seams
+`legacy_device_seam`, `effect_to_command` and `legacy_volume_file` remain, as
+do `cast::discover`, `cast::Session` and `cast::DEFAULT_VOLUME`.
 
-- [ ] List current tests with `cargo test -p homepod-cast --bin openaircast -- --list`.
-- [ ] Move self-contained inline `#[cfg(test)] mod tests { ... }` bodies to
-  adjacent `tests.rs` modules, one parent at a time. Use `#[cfg(test)] mod tests;`
-  and preserve the existing test-module nesting and `use super::*` boundaries.
-- [ ] Keep binary-private UI tests inside the binary. Do not make internals
-  public merely to move them into Cargo integration tests.
-- [ ] Compare names/counts before and after, and run the affected suite. Source
-  inspection guards must inspect the new files, not silently lose coverage.
-- [ ] Commit only after the existing acceptance matrix passes.
+## Completed history
 
-**Acceptance:** identical test discovery/behavior, no new public API, production
-files easier to read. No arbitrary line-count quota or mechanical splitting
-of functions that share an invariant.
+- [x] Task 1 moved the Windows application from `crates/homepod-cast` to
+  `apps/openaircast` while retaining all 12 workspace members and Cargo target names.
+- [x] Task 2 extracted large private test bodies without creating public APIs.
+- [x] Task 3 split `backend_bridge` by responsibility behind its existing module name.
+- [x] Task 4 split diagnostics while preserving exports, bounded history and ownership.
+- [x] Task 5 audited legacy/cast seams and removed only the two test-only helpers
+  `device_service::newest_volume` and `cast::{LaunchRoute, route_args}` with their tests.
 
-### Task 3: Split the backend bridge behind the existing module name
+Tasks 1–4 each passed their scoped acceptance suites before the next task.
+Task 5 leaves `main.rs` command dispatch for `--list`, `--selftest`,
+`--selftest-group` and `--diagnose-group` unchanged. Removing the integration
+test's private inclusion of all of `cast.rs` also stops three live `cast` unit
+tests from running a duplicate second time; they remain in the binary suite.
 
-Files: replace `apps/openaircast/src/backend_bridge.rs` with
-`backend_bridge/mod.rs`, `commands.rs`, `projection.rs`, `runtime.rs` and
-private `tests.rs` as responsibilities are extracted.
+## Verification and release handoff
 
-- [ ] Keep the module name `backend_bridge`; keep `main.rs` consumers compiling
-  through narrowly scoped re-exports in `mod.rs`.
-- [ ] Extract pure command/effect translation first; retain its existing tests.
-- [ ] Extract snapshot projection second, preserving generation/revision guards,
-  unknown/stale state handling and group-request correlation.
-- [ ] Extract worker/channel lifetime management last. Preserve bounded queues,
-  shutdown budgets and the single owner of mutable backend state.
-- [ ] Run `backend_bridge::` and `ui::acceptance::` suites, then package tests;
-  review and commit each extraction separately.
+- [x] Full-workspace Windows tests: 2,162 passed, 0 failed, 17 ignored.
+- [x] Scoped Clippy completed with the 7 existing `openaircast` warnings.
+- [x] Build-script regression suite passed without compiling Rust or launching the app.
+- [ ] Complete final review and merge the source commits.
+- [ ] Build the optimized Windows binary from the reviewed revision.
+- [ ] Package that exact revision using [Distribution](DISTRIBUTION.md).
+- [ ] Publish only after package verification; retain the known Suspend/Cancel note.
 
-**Acceptance:** no I/O in rendering or the pure reducer; no new shared mutable
-owner; late responses cannot resurrect stopped sessions or confirm newer requests.
-
-### Task 4: Split diagnostics, then review actor responsibilities
-
-Files: `apps/openaircast/src/diagnostics.rs` to `diagnostics/mod.rs` with
-private `registry.rs`, `snapshot.rs`, `export.rs`, `tests.rs`; inspect
-`backend/controller.rs`, `backend/capture.rs` and `backend/session.rs` separately.
-
-- [ ] Preserve every existing public diagnostics export through `mod.rs`.
-- [ ] Extract safe report formatting independently from mutable registry state.
-- [ ] Keep session/registration ownership, sample freshness and bounded history
-  with their tests. No raw names, addresses, paths or errors in copied reports.
-- [ ] Only extract actor/capture helpers where ownership remains explicit;
-  do not create a generic `utils` module or relocate state across threads.
-- [ ] Run diagnostics, capture and controller suites plus the package suite
-  after each extraction. Commit separately from Task 3.
-
-**Acceptance:** unknown is not zero; local send counters are not remote reception;
-test-tone samples do not masquerade as measured Windows input. No timing changes.
-
-### Task 5: Finish the repository boundary and release handoff
-
-Files: optionally move `crates/airplay-tui/` to `apps/airplay-tui/` with its
-manifest, workspace and script consumers; update `docs/README.md` and this map.
-
-- [ ] Validate the TUI's supported platform/dependency requirements before its
-  own move. If no matching validation environment is available, leave it in
-  `crates` and record that explicit exception; do not claim Windows tests cover Linux.
-- [ ] Audit `device_service.rs` and legacy bridge/cast seams using caller searches,
-  feature/cfg inspection and tests. Remove only proven unused code in a separate
-  commit; preserve `--list`, `--selftest`, `--selftest-group`, `--diagnose-group`.
-- [ ] Run full workspace tests, scoped lint and a new optimized Windows build.
-- [ ] Review the final diff for unintended behavior/dependency/lockfile changes.
-- [ ] Package the exact chosen revision using [Distribution](DISTRIBUTION.md).
-  Publish only after verification; retain the known Suspend/Cancel note.
-
-## Verification commands
-
-Run from the repository root, one Cargo process at a time. Use two jobs/test
-threads to limit load. Do not run ignored tests or launch playback automatically.
-For task-specific runs, use the relevant filter before the final `--`.
-
-```powershell
-cargo metadata --no-deps --format-version 1 --locked
-cargo check --workspace --all-targets --locked --target x86_64-pc-windows-msvc -j2
-cargo test -p homepod-cast --locked --target x86_64-pc-windows-msvc -j2 -- --test-threads=2
-cargo test --workspace --locked --target x86_64-pc-windows-msvc -j2 -- --test-threads=2
-cargo clippy -p homepod-cast --lib --bin openaircast --no-deps --locked --target x86_64-pc-windows-msvc -j2
-./tests/build-script.tests.ps1
-./build.ps1
-git diff --check
-```
-
-Check exit status after each command; stop on failure. Compare existing lint
-warnings rather than claiming an already-warning baseline is clean. Format only
-changed Rust modules; avoid unrelated formatting churn. UI-only smoke checks and
-physical speaker checks are separate, permission-bound steps. These commands
-are planned verification, not evidence that the proposed structure already exists.
+Automated Windows tests do not replace UI smoke checks, a clean-machine check,
+physical-speaker playback, acoustic synchronization measurements or Linux TUI
+validation. Those remain separate, permission-bound work.

@@ -1,6 +1,8 @@
 # Status and remaining work
 
-Updated: 2026-09-09. Source implementation: `07872d6863f0f671f332cb969b4fd4285dd08965`.
+Updated: 2026-09-10. Source implementation: `3e3b036`. The source-layout
+refactoring is implemented and source verification passed; final review,
+optimized build, packaging and publication remain pending.
 This is a status summary, not a claim of production certification.
 
 ## Available
@@ -15,21 +17,28 @@ subsequent binary and do not measure acoustic synchronization.
 
 ## Verification
 
-The full workspace run on checkout `7b02c86ff9052c8c129716634178db9296e0a68e`
-finished successfully: **2,167 passed, 0 failed, 17 ignored**.
+The full workspace run after the source refactoring finished successfully:
+**2,162 passed, 0 failed, 17 ignored**. The earlier recorded baseline was
+2,167 passed, 0 failed and 17 ignored. Task 5 intentionally removed two tests
+with their test-only helpers. Removing the integration test's private `cast.rs`
+inclusion also stopped three live `cast` unit tests from running a duplicate
+second time; those tests remain in the binary suite.
 
 ```powershell
-cargo test --workspace --offline --locked --target x86_64-pc-windows-msvc -j2 -- --test-threads=2
+cargo test --workspace --locked --target x86_64-pc-windows-msvc --target-dir <shared-target> -j2 -- --test-threads=2
 ```
 
-`--offline` assumes dependencies are already cached. This run did not enable
-ignored hardware/manual tests, launch the app or start speaker playback.
-Existing dependency/compiler warnings remain. Automated tests are not a clean
-Windows installation check or a fresh physical listening test.
+This run did not enable ignored hardware/manual tests, launch the app or start
+speaker playback. Scoped Clippy also passed with the 7 existing `openaircast`
+warnings, and the build-script regression suite passed. Existing dependency
+and compiler warnings remain. Automated tests are not a clean Windows
+installation check or a fresh physical listening test.
 
-The optimized local EXE was built successfully from the application source above.
-Local outputs are not published downloads. See [Distribution](DISTRIBUTION.md)
-and the [installation guide](../README.md) for the distinction.
+The previously documented optimized local EXE predates the source-layout
+refactoring. A new optimized build from the final reviewed revision is still
+required. Local outputs are not published downloads. See
+[Distribution](DISTRIBUTION.md) and the [installation guide](../README.md) for
+the distinction.
 
 ## Known limitations
 
@@ -51,8 +60,10 @@ and the [installation guide](../README.md) for the distinction.
 ## Next work, in order
 
 - [x] Consolidate documentation; preserve design and technical references.
-- [ ] Review the [source-layout refactoring proposal](REFACTORING.md).
-- [ ] Execute approved structural changes separately from behavioral fixes.
+- [x] Implement and independently verify source-layout Tasks 1–4.
+- [x] Audit and remove the two proven test-only helpers in a separate cleanup commit.
+- [ ] Complete final source-layout review and verification; see the
+  [source map and history](REFACTORING.md).
 - [ ] Reproduce and fix Suspend/Cancel with a failing regression test first;
   run the remaining manual Windows/hardware matrix only with authorization.
 - [ ] Package the chosen revision, publish the first GitHub release with its

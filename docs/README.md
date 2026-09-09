@@ -10,7 +10,7 @@
 
 - [Distribution](DISTRIBUTION.md): build output, packaging and publication checklist.
 - [UI design](UI_DESIGN.md): detailed Windows Native layout and interaction constraints.
-- [Source refactoring proposal](REFACTORING.md): current map, target structure and staged migration.
+- [Source map and refactoring history](REFACTORING.md): implemented repository boundaries and release gates.
 
 ## Technical references
 
