@@ -1,0 +1,85 @@
+[package]
+name = "homepod-cast"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.95"
+description = "Stream Windows system audio to synchronized AirPlay 2 receiver groups"
+
+[[bin]]
+name = "openaircast"
+path = "src/main.rs"
+
+[dependencies]
+airplay-core = { path = "../../crates/airplay-core" }
+airplay-client = { path = "../../crates/airplay-client" }
+airplay-discovery = { path = "../../crates/airplay-discovery" }
+airplay-audio = { path = "../../crates/airplay-audio" }
+
+wasapi = "0.23"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+# `links` handles explicit user requests to open the support page in the browser.
+eframe = { version = "=0.36.1", default-features = false, features = ["accesskit", "default_fonts", "links", "wgpu"] }
+egui = "=0.36.1"
+arc-swap = "=1.9.2"
+serde = { workspace = true }
+serde_json = "=1.0.149"
+thiserror = { workspace = true }
+image = { version = "=0.25.10", default-features = false, features = ["png"] }
+accesskit = "0.24.1"
+uuid = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+tokio-stream = { workspace = true }
+crossbeam-channel = "0.5"
+tokio-util = { version = "0.7", features = ["rt"] }
+# Task 5: the real HWND behind the eframe window, taken from `CreationContext`.
+# Already in the lock file via eframe/winit, so this adds an edge, not a crate.
+raw-window-handle = "0.6"
+
+# System tray UI
+tray-icon = "=0.24.0"
+windows-sys = { version = "0.59", features = [
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_Foundation",
+    "Win32_System_LibraryLoader",
+    "Win32_Graphics_Gdi",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Threading",
+    "Win32_System_SystemInformation",
+    "Win32_UI_Accessibility",
+    # Task 5: GetUserPreferredUILanguages + MUI_LANGUAGE_NAME live in
+    # Win32_Globalization; SetWindowSubclass, RemoveWindowSubclass,
+    # DefSubclassProc, and SUBCLASSPROC live in Win32_UI_Shell. Verified in
+    # windows-sys 0.59.0: none of the five carries a further item-level
+    # `#[cfg(feature = ...)]`, so these two gates are sufficient on their own.
+    "Win32_Globalization",
+    "Win32_UI_Shell",
+    # Task 17: cancellable interface-change notifications and address records.
+    "Win32_NetworkManagement_IpHelper",
+    "Win32_Networking_WinSock",
+    # windows-sys 0.59 gates MIB_IPINTERFACE_ROW / MIB_UNICASTIPADDRESS_TABLE
+    # behind Ndis as well, so the two features above cannot stand alone. It is
+    # currently pulled in transitively by if-addrs; declaring it keeps this
+    # crate compiling if that ever stops being true.
+    "Win32_NetworkManagement_Ndis",
+] }
+
+[dev-dependencies]
+# "eframe" adds `Harness::build_eframe`, which drives the real
+# `ControlCenterApp` through the real `eframe::App` hooks -- the only way to
+# test the window-close path without the wiring being able to rot silently.
+egui_kittest = { version = "=0.36.1", features = ["wgpu", "eframe"] }
+ico = "=0.5.0"
+tempfile = "=3.27.0"
+# `#[tokio::test(start_paused = true)]`. Asserting that a control request does
+# not wait on the update stream needs a clock the test controls: on the wall
+# clock the same assertion would only measure the machine's load. Test builds
+# only -- dev-dependency features never reach the shipped binary.
+tokio = { version = "1", features = ["test-util"] }
+
+[build-dependencies]
+winresource = "=0.1.31"
